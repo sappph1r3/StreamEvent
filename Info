@@ -1,0 +1,2 @@
+A high-performance, lightweight Luau event utility.
+It provides stream-like interactions for Luau signals, featuring O(1) connection management, native type safety, and memory-safe iterations.
