@@ -1,2 +1,109 @@
 A high-performance, lightweight Luau event utility.
 It provides stream-like interactions for Luau signals, featuring O(1) connection management, native type safety, and memory-safe iterations.
+
+--// Api Refrence \\--
+  --[[StreamEvent(Class)]]--
+
+
+  StreamEvent.new()
+  Constructs a new StreamEvent stream manager instance.
+    Returns: StreamEvent object.
+
+  StreamEvent:Connect(fn: (...any) -> ())
+  Subscribes a listener function to the stream.Arguments: fn — The callback function to run when fired.
+    Returns: A Connection object.
+
+  StreamEvent:Once(fn: (...any) -> hone)
+    Subscribes a listener function that automatically disconnects after firing exactly once.Arguments: fn — The callback function.
+    Returns: A Connection object.
+
+  StreamEvent:Wait()
+    Yields the current thread / scope until the stream is next fired.
+    Returns: The arguments passed to the stream when fired.
+
+  StreamEvent:Fire(...: any)
+    Fires the stream and schedules all active listeners using task.spawn.
+    Arguments: ... — Variadic arguments passed to all listeners.
+
+  StreamEvent:DisconnectAll()
+    Mass-disconnects all existing active connections instantly.
+    Leaves the stream reusable.
+
+  StreamEvent:Destroy()
+    Disconnects all listeners, clears internal tables, and destroys the stream object.
+    Full cleanup of the module.
+
+
+--[[Connection(Object)]]--
+  The object returned by :Connect() and :Once().
+
+  Connection.Connected
+    Type: boolean
+    Description: Returns whether the connection is currently active.
+
+  Connection:Disconnect()
+    Deactivates the listener and removes it from the stream's internal tracking registry.
+    Connection()
+      Metamethod: __callDescription: Syntactic sugar. Calling the connection object as a function directly invokes :Disconnect().
+
+
+
+
+--// Basic Examples \\--
+
+-- Basic Connection & Firing
+[[
+local StreamEvent = require(path.to.StreamEvent)
+
+-- Create a new stream
+local onPlayerLevelUp = StreamEvent.new()
+
+-- Connect a listener
+local connection = onPlayerLevelUp:Connect(function(playerName: string, newLevel: number)
+    print(string.format("%s leveled up to %d!", playerName, newLevel))
+end)
+
+-- Fire the stream
+onPlayerLevelUp:Fire("David Zucchini", 50) 
+-- Prints: David Zucchini leveled up to 50!
+]]
+
+-- Disconnecting and Calling Shortcuts
+[[
+local connection = untitledStream:Connect(print)
+
+-- Standard disconnection
+connection:Disconnect()
+
+-- Shortcut disconnection (calling the connection directly)
+connection() 
+
+]]
+
+-- Using Once & Wait
+[[
+-- Fires only on the very next frame, then drops
+myStream:Once(function(data)
+    print("This will only log once:", data)
+end)
+
+-- Thread yielding
+task.spawn(function()
+    print("Waiting for data...")
+
+    local result = myStream:Wait()
+
+    print("Resumed with data:", result)
+end)
+]]
+
+-- Stream Cleanup
+[[
+-- Clears all current connections, but the stream remains open for new ones
+myStream:DisconnectAll()
+
+-- Destroys the stream entirely and breaks the object reference
+myStream:Destroy()
+]]
+(Info: You can also wrap StreamEvent around any other cleanup modules to cleanup multiple streams or tasks within ur game)
+(Recommended (PERSONALLY): #1: Trove, #2: Janitor, #3: Maid)
